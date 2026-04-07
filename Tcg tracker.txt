@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0F0F23">
+<title>TCG Tracker</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0F0F23;--surface:#1A1A2E;--border:#2A2A4A;--text:#E0E0FF;--muted:#7777AA;--dim:#6666AA;--accent:#818CF8;--accent2:#8B5CF6;--green:#34D399;--red:#EF4444;--pink:#F472B6;--yellow:#FBBF24;--orange:#FB923C;--input-bg:#12122A}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+input,select,textarea,button{font-family:inherit}
+.mono{font-family:'Space Mono',monospace}
+
+/* Header */
+.header{background:linear-gradient(135deg,#12122A,#1A1A3E);border-bottom:1px solid var(–border);padding:20px 24px}
+.header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.header h1{font-size:22px;font-weight:700;background:linear-gradient(135deg,#818CF8,#C084FC);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .sub{font-size:12px;color:var(–dim);letter-spacing:0.06em}
+
+/* Tabs */
+.tabs{background:#12122A;border-bottom:1px solid var(–border);position:sticky;top:0;z-index:100}
+.tabs-inner{max-width:960px;margin:0 auto;display:flex;overflow-x:auto}
+.tab-btn{flex:1;padding:14px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(–dim);cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;transition:all .2s}
+.tab-btn.active{color:var(–text);border-bottom-color:var(–accent)}
+.tab-btn .ico{font-size:16px}
+
+/* Content */
+.content{max-width:960px;margin:0 auto;padding:24px 16px}
+
+/* Stat Cards */
+.stats{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:28px}
+.stat{background:var(–surface);border-radius:14px;padding:20px 22px;border:1px solid var(–border);flex:1 1 200px;min-width:160;position:relative;overflow:hidden}
+.stat .bg-icon{position:absolute;top:-10px;right:-10px;font-size:56px;opacity:.06;line-height:1}
+.stat .label{font-size:13px;color:var(–muted);margin-bottom:6px;font-weight:500;letter-spacing:.04em}
+.stat .val{font-size:28px;font-weight:700;font-family:‘Space Mono’,monospace}
+.stat .sub{font-size:12px;color:var(–dim);margin-top:4px}
+
+/* Cards */
+.card{background:var(–surface);border-radius:12px;padding:16px 20px;border:1px solid var(–border);cursor:pointer;transition:border-color .2s;margin-bottom:10px}
+.card:hover{border-color:#3A3A5A}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px}
+
+/* Badges */
+.badge{font-size:12px;padding:4px 10px;border-radius:20px;font-weight:600;display:inline-block}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.form-grid .full{grid-column:1/-1}
+.field{margin-bottom:16px}
+.field label{display:block;margin-bottom:6px;font-size:13px;color:#9999BB;font-weight:500;letter-spacing:.03em}
+.input{width:100%;padding:10px 14px;background:var(–input-bg);border:1px solid var(–border);border-radius:10px;color:var(–text);font-size:14px;outline:none;box-sizing:border-box;transition:border-color .2s}
+.input:focus{border-color:var(–accent)}
+select.input{appearance:none;cursor:pointer}
+textarea.input{resize:vertical}
+
+/* Buttons */
+.btn{padding:12px 28px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.3)}
+.btn-secondary{background:transparent;color:#9999BB;border:1px solid var(–border)}
+.btn-danger{padding:8px 16px;background:rgba(239,68,68,.15);color:#EF4444;border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:13px;cursor:pointer}
+
+/* Toolbar */
+.toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;backdrop-filter:blur(4px)}
+.modal{background:var(–surface);border-radius:16px;width:100%;max-width:520px;max-height:85vh;overflow:auto;border:1px solid var(–border);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(–border)}
+.modal-header h3{font-size:18px;color:var(–text)}
+.modal-close{background:none;border:none;color:#888;font-size:22px;cursor:pointer}
+.modal-body{padding:24px}
+
+/* Summary row */
+.summary-row{background:var(–input-bg);border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+
+/* Section divider */
+.sale-section{border-top:1px solid var(–border);padding-top:16px;margin-top:8px;margin-bottom:8px;grid-column:1/-1}
+.sale-section .sale-label{font-size:14px;color:var(–green);font-weight:600;margin-bottom:12px}
+
+/* Profit preview */
+.profit-preview{border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.profit-pos{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2)}
+.profit-neg{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)}
+
+/* Section card */
+.section-card{background:var(–surface);border-radius:14px;padding:22px;border:1px solid var(–border);margin-bottom:16px}
+.section-card h3{margin:0 0 16px;font-size:16px;font-weight:600;color:var(–text)}
+.section-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1E1E38}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 20px;color:var(–dim)}
+.empty .icon{font-size:48px;margin-bottom:12px}
+
+/* Footer */
+.data-footer{margin-top:20px;padding:16px 0;border-top:1px solid var(–border);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* Gmail badge */
+.gmail-badge{color:#6366F1;margin-left:6px;font-size:11px}
+
+@media(max-width:500px){
+.form-grid{grid-template-columns:1fr}
+.form-grid .full{grid-column:1}
+.stat{min-width:140px}
+.stat .val{font-size:22px}
+}
+</style>
+
+</head>
+<body>
+
+<div id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+const TABS = ["dashboard","orders","inventory","profits"];
+const TAB_LABELS = {dashboard:"Dashboard",orders:"Orders",inventory:"Inventory",profits:"Profits"};
+const TAB_ICONS = {dashboard:"◉",orders:"📦",inventory:"🗃️",profits:"💰"};
+const STATUS_COLORS = {
+  Pending:{bg:"#FEF3C7",text:"#92400E",border:"#FCD34D"},
+  Shipped:{bg:"#DBEAFE",text:"#1E40AF",border:"#93C5FD"},
+  Delivered:{bg:"#D1FAE5",text:"#065F46",border:"#6EE7B7"},
+  Cancelled:{bg:"#FEE2E2",text:"#991B1B",border:"#FCA5A5"},
+  Returned:{bg:"#F3E8FF",text:"#6B21A8",border:"#C4B5FD"},
+  Sold:{bg:"#ECFDF5",text:"#047857",border:"#34D399"},
+};
+const COND = ["Sealed","Near Mint","Lightly Played","Played","Damaged"];
+const genId = () => Date.now().toString(36)+Math.random().toString(36).substr(2,5);
+const fmt$ = v => {const n=parseFloat(v);return isNaN(n)?"$0.00":"$"+n.toFixed(2)};
+const fmtDate = iso => {if(!iso)return"—";return new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})};
+
+// localStorage helpers
+const STORAGE_KEY = "ptcg_tracker_data";
+function loadData(){try{const d=localStorage.getItem(STORAGE_KEY);return d?JSON.parse(d):{orders:[],inventory:[]};}catch{return{orders:[],inventory:[]};}}
+function saveDataLS(data){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(e){console.error("Save failed",e);}}
+
+// Pre-loaded Gmail orders
+const GMAIL_ORDERS = [
+  {id:"gmail_01",orderNumber:"2000145-27923716",productName:"Pokemon TCG Mega Evolution Ascended Heroes Deluxe Pin Collection",source:"Walmart",quantity:"5",unitPrice:"",shippingCost:"0",tax:"0",totalCost:"158.84",orderDate:"2026-03-18",status:"Shipped",trackingNumber:"399916584600",notes:"Auto-imported from Gmail · FedEx · 5 items",soldPrice:"",soldPlatform:"",dateSold:""},
+  {id:"gmail_02",orderNumber:"2000144-47549837",productName:"Pokemon Trading Card Games (5 items)",source:"Walmart",quantity:"5",unitPrice:"",shippingCost:"0",tax:"0",totalCost:"158.84",orderDate:"2026-03-18",status:"Shipped",trackingNumber:"399900581418",notes:"Auto-imported from Gmail · FedEx · 5 items",soldPrice:"",soldPlatform:"",dateSold:""},
+  {id:"gmail_03",orderNumber:"2000146-53786987",productName:"Pokemon Trading Card Games (5 items)",source:"Walmart",quantity:"5",unitPrice:"",shippingCost:"0",tax:"0",totalCost:"158.84",orderDate:"2026-03-18",status:"Shipped",trackingNumber:"399916075680",notes:"Auto-imported from Gmail · FedEx · 5 items",soldPrice:"",soldPlatform:"",dateSold:""},
+  {id:"gmail_04",orderNumber:"2000148-96922372",productName:"Pokemon Scarlet & Violet (5 items)",source:"Walmart",quantity:"5",unitPrice:"",shippingCost:"0",tax:"0",totalCost:"370.84",orderDate:"2026-03-25",status:"Shipped",trackingNumber:"380054812457",notes:"Auto-imported from Gmail · FedEx · 5 items",soldPrice:"",soldPlatform:"",dateSold:""},
+  {id:"gmail_05",orderNumber:"2000145-53706156",productName:"Pokemon TCG Mega Evolution Perfect Order Booster Bundle (5 items)",source:"Walmart",quantity:"5",unitPrice:"",shippingCost:"0",tax:"0",totalCost:"158.84",orderDate:"2026-03-26",status:"Shipped",trackingNumber:"380085774885",notes:"Auto-imported from Gmail · FedEx · 5 items",soldPrice:"",soldPlatform:"",dateSold:""},
+];
+
+function getOrderProfit(o){const c=parseFloat(o.totalCost)||0;const s=parseFloat(o.soldPrice)||0;if(!o.soldPrice||s===0)return null;return s-c;}
+
+function Modal({open,onClose,title,children}){
+  if(!open)return null;
+  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><div className="modal-header"><h3>{title}</h3><button className="modal-close" onClick={onClose}>✕</button></div><div className="modal-body">{children}</div></div></div>);
+}
+
+function Field({label,children}){return(<div className="field"><label>{label}</label>{children}</div>)}
+
+function StatCard({label,value,icon,color,sub}){
+  return(<div className="stat"><div className="bg-icon">{icon}</div><div className="label">{label}</div><div className="val" style={{color}}>{value}</div>{sub&&<div className="sub">{sub}</div>}</div>);
+}
+
+function Confirm({open,onClose,onConfirm,message}){
+  if(!open)return null;
+  return(<div className="modal-overlay" onClick={onClose}><div className="modal" style={{maxWidth:380,textAlign:"center"}} onClick={e=>e.stopPropagation()}><div className="modal-body"><p style={{marginBottom:24,lineHeight:1.6}}>{message}</p><div style={{display:"flex",gap:12,justifyContent:"center"}}><button className="btn btn-secondary" onClick={onClose}>Cancel</button><button className="btn btn-primary" style={{background:"linear-gradient(135deg,#EF4444,#DC2626)"}} onClick={onConfirm}>Delete</button></div></div></div></div>);
+}
+
+function Badge({status}){const c=STATUS_COLORS[status]||{};return <span className="badge" style={{background:c.bg,color:c.text,border:"1px solid "+(c.border||"#444")}}>{status}</span>}
+
+// ─── Dashboard ───
+function Dashboard({orders}){
+  const total=orders.length;
+  const spent=orders.reduce((s,o)=>s+(parseFloat(o.totalCost)||0),0);
+  const sold=orders.filter(o=>o.soldPrice&&parseFloat(o.soldPrice)>0);
+  const rev=sold.reduce((s,o)=>s+(parseFloat(o.soldPrice)||0),0);
+  const profit=sold.reduce((s,o)=>s+getOrderProfit(o),0);
+  const unsold=orders.filter(o=>!o.soldPrice||parseFloat(o.soldPrice)===0);
+  const unsoldCost=unsold.reduce((s,o)=>s+(parseFloat(o.totalCost)||0),0);
+  const pending=orders.filter(o=>o.status==="Pending"||o.status==="Shipped").length;
+  const recent=[...orders].sort((a,b)=>new Date(b.orderDate)-new Date(a.orderDate)).slice(0,5);
+
+  return(<div>
+    <div className="stats">
+      <StatCard label="TOTAL ORDERS" value={total} icon="📦" color="#818CF8"/>
+      <StatCard label="TOTAL SPENT" value={fmt$(spent)} icon="💳" color="#F472B6"/>
+      <StatCard label="TOTAL REVENUE" value={fmt$(rev)} icon="💵" color="#34D399" sub={sold.length+" sold"}/>
+      <StatCard label="NET PROFIT" value={fmt$(profit)} icon="📈" color={profit>=0?"#34D399":"#EF4444"}/>
+    </div>
+    <div className="stats">
+      <StatCard label="UNSOLD COST" value={fmt$(unsoldCost)} icon="🗃️" color="#FBBF24" sub={unsold.length+" orders"}/>
+      <StatCard label="ITEMS SOLD" value={sold.length} icon="✅" color="#34D399"/>
+      <StatCard label="PENDING/SHIPPED" value={pending} icon="⏳" color="#FB923C"/>
+      <StatCard label="AVG ORDER" value={fmt$(total?spent/total:0)} icon="📊" color="#818CF8"/>
+    </div>
+    <div className="section-card">
+      <h3>Recent Orders</h3>
+      {recent.length===0?<p style={{color:"var(--dim)"}}>No orders yet.</p>:recent.map(o=>{const p=getOrderProfit(o);return(
+        <div className="section-row" key={o.id}>
+          <div><div style={{color:"#C8C8E8",fontSize:14,fontWeight:500}}>{o.productName}</div><div style={{color:"var(--dim)",fontSize:12}}>#{o.orderNumber} · {fmtDate(o.orderDate)}</div></div>
+          <div style={{textAlign:"right"}}><Badge status={o.status}/><div className="mono" style={{color:"var(--accent)",fontWeight:600,fontSize:14,marginTop:4}}>Cost: {fmt$(o.totalCost)}</div>{p!==null&&<div style={{color:p>=0?"#34D399":"#EF4444",fontSize:12,fontWeight:600}}>Sold: {fmt$(o.soldPrice)} ({p>=0?"+":""}{fmt$(p)})</div>}</div>
+        </div>);})}
+    </div>
+  </div>);
+}
+
+// ─── Orders ───
+function OrdersTab({orders,setOrders,save}){
+  const [modal,setModal]=useState(false);
+  const [editId,setEditId]=useState(null);
+  const [del,setDel]=useState(null);
+  const [search,setSearch]=useState("");
+  const [filter,setFilter]=useState("All");
+  const blank={orderNumber:"",productName:"",source:"Walmart",quantity:"1",unitPrice:"",shippingCost:"0",tax:"0",totalCost:"",orderDate:new Date().toISOString().slice(0,10),status:"Pending",trackingNumber:"",notes:"",soldPrice:"",soldPlatform:"",dateSold:""};
+  const [form,setForm]=useState(blank);
+  const up=(k,v)=>setForm(p=>({...p,[k]:v}));
+  const openNew=()=>{setForm(blank);setEditId(null);setModal(true)};
+  const openEdit=o=>{setForm({...blank,...o});setEditId(o.id);setModal(true)};
+  const calcTotal=()=>((parseFloat(form.unitPrice)||0)*(parseInt(form.quantity)||1)+(parseFloat(form.shippingCost)||0)+(parseFloat(form.tax)||0)).toFixed(2);
+  const calcProfit=()=>{const c=parseFloat(form.totalCost)||parseFloat(calcTotal());const s=parseFloat(form.soldPrice)||0;return s===0?null:s-c;};
+
+  const handleSave=()=>{
+    if(!form.orderNumber||!form.productName)return;
+    const tc=form.totalCost||calcTotal();
+    let st=form.status;if(form.soldPrice&&parseFloat(form.soldPrice)>0&&st!=="Sold")st="Sold";
+    const entry={...form,totalCost:String(tc),status:st,id:editId||genId()};
+    const updated=editId?orders.map(o=>o.id===editId?entry:o):[...orders,entry];
+    setOrders(updated);save({orders:updated});setModal(false);
+  };
+  const handleDel=()=>{const u=orders.filter(o=>o.id!==del);setOrders(u);save({orders:u});setDel(null)};
+  const filtered=orders.filter(o=>{const ms=!search||o.productName.toLowerCase().includes(search.toLowerCase())||o.orderNumber.toLowerCase().includes(search.toLowerCase());const mst=filter==="All"||o.status===filter;return ms&&mst;}).sort((a,b)=>new Date(b.orderDate)-new Date(a.orderDate));
+
+  return(<div>
+    <div className="toolbar">
+      <input className="input" placeholder="Search orders..." value={search} onChange={e=>setSearch(e.target.value)} style={{flex:"1 1 200px",maxWidth:300}}/>
+      <select className="input" value={filter} onChange={e=>setFilter(e.target.value)} style={{flex:"0 0 auto",width:140}}>
+        <option value="All">All Status</option>{Object.keys(STATUS_COLORS).map(s=><option key={s}>{s}</option>)}
+      </select>
+      <button className="btn btn-primary" style={{marginLeft:"auto"}} onClick={openNew}>+ Add Order</button>
+    </div>
+
+    {filtered.length===0?(<div className="empty"><div className="icon">📦</div><p>No orders found.</p></div>):(
+      filtered.map(o=>{const p=getOrderProfit(o);return(
+        <div className="card" key={o.id} onClick={()=>openEdit(o)}>
+          <div className="card-row">
+            <div>
+              <div style={{fontWeight:600,fontSize:15,marginBottom:4}}>{o.productName}</div>
+              <div style={{color:"var(--muted)",fontSize:13}}>#{o.orderNumber} · {o.source} · Qty: {o.quantity}{o.notes&&o.notes.includes("Gmail")&&<span className="gmail-badge">✉ Gmail</span>}</div>
+              {o.trackingNumber&&<div style={{color:"var(--dim)",fontSize:12,marginTop:2}}>Tracking: {o.trackingNumber}</div>}
+            </div>
+            <div style={{textAlign:"right"}}>
+              <Badge status={o.status}/>
+              <div className="mono" style={{color:"var(--accent)",fontWeight:700,fontSize:16,marginTop:8}}>{fmt$(o.totalCost)}</div>
+              {p!==null&&<div style={{marginTop:4}}><div style={{color:"#C8C8E8",fontSize:12}}>Sold: {fmt$(o.soldPrice)}</div><div className="mono" style={{color:p>=0?"#34D399":"#EF4444",fontSize:13,fontWeight:700}}>{p>=0?"+":""}{fmt$(p)}</div></div>}
+              <div style={{color:"var(--dim)",fontSize:12,marginTop:2}}>{fmtDate(o.orderDate)}</div>
+            </div>
+          </div>
+        </div>);})
+    )}
+
+    <Modal open={modal} onClose={()=>setModal(false)} title={editId?"Edit Order":"New Order"}>
+      <div className="form-grid">
+        <Field label="Order Number *"><input className="input" value={form.orderNumber} onChange={e=>up("orderNumber",e.target.value)}/></Field>
+        <Field label="Order Date"><input type="date" className="input" value={form.orderDate} onChange={e=>up("orderDate",e.target.value)}/></Field>
+        <div className="full"><Field label="Product Name *"><input className="input" value={form.productName} onChange={e=>up("productName",e.target.value)}/></Field></div>
+        <Field label="Source"><select className="input" value={form.source} onChange={e=>up("source",e.target.value)}>{["Walmart","Target","Amazon","Pokemon Center","GameStop","eBay","TCGPlayer","Local Store","Other"].map(s=><option key={s}>{s}</option>)}</select></Field>
+        <Field label="Status"><select className="input" value={form.status} onChange={e=>up("status",e.target.value)}>{Object.keys(STATUS_COLORS).map(s=><option key={s}>{s}</option>)}</select></Field>
+        <Field label="Quantity"><input type="number" className="input" value={form.quantity} onChange={e=>up("quantity",e.target.value)} min="1"/></Field>
+        <Field label="Unit Price ($)"><input type="number" step="0.01" className="input" value={form.unitPrice} onChange={e=>up("unitPrice",e.target.value)}/></Field>
+        <Field label="Shipping ($)"><input type="number" step="0.01" className="input" value={form.shippingCost} onChange={e=>up("shippingCost",e.target.value)}/></Field>
+        <Field label="Tax ($)"><input type="number" step="0.01" className="input" value={form.tax} onChange={e=>up("tax",e.target.value)}/></Field>
+        <div className="full"><Field label="Tracking Number"><input className="input" value={form.trackingNumber} onChange={e=>up("trackingNumber",e.target.value)}/></Field></div>
+        <div className="full summary-row"><span style={{color:"#9999BB",fontSize:14}}>Order Total</span><span className="mono" style={{color:"var(--accent)",fontWeight:700,fontSize:16}}>{fmt$(form.totalCost||calcTotal())}</span></div>
+
+        <div className="sale-section"><div className="sale-label">💰 Sale Details (fill when sold)</div></div>
+        <Field label="Sold For ($)"><input type="number" step="0.01" className="input" value={form.soldPrice} onChange={e=>up("soldPrice",e.target.value)} placeholder="0.00"/></Field>
+        <Field label="Date Sold"><input type="date" className="input" value={form.dateSold} onChange={e=>up("dateSold",e.target.value)}/></Field>
+        <div className="full"><Field label="Sold On"><select className="input" value={form.soldPlatform} onChange={e=>up("soldPlatform",e.target.value)}><option value="">— Not sold yet —</option>{["eBay","TCGPlayer","Mercari","Facebook Marketplace","OfferUp","Local Sale","Other"].map(p=><option key={p}>{p}</option>)}</select></Field></div>
+
+        {form.soldPrice&&parseFloat(form.soldPrice)>0&&(()=>{const p=calcProfit();return(<div className={"full profit-preview "+(p>=0?"profit-pos":"profit-neg")}><span style={{color:"#9999BB",fontSize:14}}>Profit</span><span className="mono" style={{color:p>=0?"#34D399":"#EF4444",fontWeight:700,fontSize:16}}>{p>=0?"+":""}{fmt$(p)}</span></div>)})()}
+
+        <div className="full"><Field label="Notes"><textarea rows={2} className="input" value={form.notes} onChange={e=>up("notes",e.target.value)}/></Field></div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        {editId?<button className="btn-danger" onClick={()=>{setModal(false);setDel(editId)}}>Delete</button>:<div/>}
+        <div style={{display:"flex",gap:10}}><button className="btn btn-secondary" onClick={()=>setModal(false)}>Cancel</button><button className="btn btn-primary" onClick={handleSave}>Save Order</button></div>
+      </div>
+    </Modal>
+    <Confirm open={!!del} onClose={()=>setDel(null)} onConfirm={handleDel} message="Delete this order permanently?"/>
+  </div>);
+}
+
+// ─── Inventory ───
+function InventoryTab({inventory,setInventory,orders,save}){
+  const [modal,setModal]=useState(false);const [editId,setEditId]=useState(null);const [del,setDel]=useState(null);const [search,setSearch]=useState("");const [filter,setFilter]=useState("All");
+  const blank={productName:"",category:"Booster Box",condition:"Sealed",quantity:"1",costBasis:"",marketValue:"",soldPrice:"",status:"In Stock",platform:"",linkedOrderId:"",notes:"",dateAdded:new Date().toISOString().slice(0,10),dateSold:""};
+  const [form,setForm]=useState(blank);const up=(k,v)=>setForm(p=>({...p,[k]:v}));
+  const openNew=()=>{setForm(blank);setEditId(null);setModal(true)};const openEdit=i=>{setForm({...blank,...i});setEditId(i.id);setModal(true)};
+  const handleSave=()=>{if(!form.productName)return;const entry={...form,id:editId||genId()};const u=editId?inventory.map(i=>i.id===editId?entry:i):[...inventory,entry];setInventory(u);save({inventory:u});setModal(false)};
+  const handleDel=()=>{const u=inventory.filter(i=>i.id!==del);setInventory(u);save({inventory:u});setDel(null)};
+  const filtered=inventory.filter(i=>{const ms=!search||i.productName.toLowerCase().includes(search.toLowerCase());const mst=filter==="All"||i.status===filter;return ms&&mst});
+  const ISC={"In Stock":{bg:"#DBEAFE",text:"#1E40AF",border:"#93C5FD"},Listed:{bg:"#FEF3C7",text:"#92400E",border:"#FCD34D"},Sold:{bg:"#D1FAE5",text:"#065F46",border:"#6EE7B7"},Personal:{bg:"#F3E8FF",text:"#6B21A8",border:"#C4B5FD"}};
+
+  return(<div>
+    <div className="toolbar">
+      <input className="input" placeholder="Search inventory..." value={search} onChange={e=>setSearch(e.target.value)} style={{flex:"1 1 200px",maxWidth:300}}/>
+      <select className="input" value={filter} onChange={e=>setFilter(e.target.value)} style={{flex:"0 0 auto",width:140}}><option value="All">All Status</option><option>In Stock</option><option>Listed</option><option>Sold</option><option>Personal</option></select>
+      <button className="btn btn-primary" style={{marginLeft:"auto"}} onClick={openNew}>+ Add Item</button>
+    </div>
+    {filtered.length===0?<div className="empty"><div className="icon">🗃️</div><p>No inventory items yet.</p></div>:filtered.map(i=>{const profit=i.status==="Sold"?((parseFloat(i.soldPrice)||0)-(parseFloat(i.costBasis)||0)):null;const sc=ISC[i.status]||{};return(
+      <div className="card" key={i.id} onClick={()=>openEdit(i)}><div className="card-row"><div><div style={{fontWeight:600,fontSize:15,marginBottom:4}}>{i.productName}</div><div style={{color:"var(--muted)",fontSize:13}}>{i.category} · {i.condition} · Qty: {i.quantity}</div></div><div style={{textAlign:"right"}}><span className="badge" style={{background:sc.bg,color:sc.text,border:"1px solid "+(sc.border||"#444")}}>{i.status}</span><div style={{marginTop:8}}>{i.status==="Sold"?<><div className="mono" style={{color:"#34D399",fontWeight:700,fontSize:14}}>Sold: {fmt$(i.soldPrice)}</div><div style={{color:profit>=0?"#34D399":"#EF4444",fontSize:12,fontWeight:600}}>{profit>=0?"+":""}{fmt$(profit)}</div></>:<div className="mono" style={{color:"var(--accent)",fontWeight:700,fontSize:14}}>Cost: {fmt$(i.costBasis)}</div>}</div></div></div></div>)})}
+
+    <Modal open={modal} onClose={()=>setModal(false)} title={editId?"Edit Item":"New Inventory Item"}>
+      <div className="form-grid">
+        <div className="full"><Field label="Product Name *"><input className="input" value={form.productName} onChange={e=>up("productName",e.target.value)}/></Field></div>
+        <Field label="Category"><select className="input" value={form.category} onChange={e=>up("category",e.target.value)}>{["Booster Box","ETB","Booster Bundle","Collection Box","Tin","Blister Pack","Single Card","Slab/Graded","Accessory","Other"].map(c=><option key={c}>{c}</option>)}</select></Field>
+        <Field label="Condition"><select className="input" value={form.condition} onChange={e=>up("condition",e.target.value)}>{COND.map(c=><option key={c}>{c}</option>)}</select></Field>
+        <Field label="Quantity"><input type="number" className="input" value={form.quantity} onChange={e=>up("quantity",e.target.value)} min="1"/></Field>
+        <Field label="Cost Basis ($)"><input type="number" step="0.01" className="input" value={form.costBasis} onChange={e=>up("costBasis",e.target.value)}/></Field>
+        <Field label="Status"><select className="input" value={form.status} onChange={e=>up("status",e.target.value)}><option>In Stock</option><option>Listed</option><option>Sold</option><option>Personal</option></select></Field>
+        <Field label="Market Value ($)"><input type="number" step="0.01" className="input" value={form.marketValue} onChange={e=>up("marketValue",e.target.value)}/></Field>
+        {form.status==="Sold"&&<><Field label="Sold Price ($)"><input type="number" step="0.01" className="input" value={form.soldPrice} onChange={e=>up("soldPrice",e.target.value)}/></Field><Field label="Date Sold"><input type="date" className="input" value={form.dateSold} onChange={e=>up("dateSold",e.target.value)}/></Field></>}
+        <Field label="Platform"><select className="input" value={form.platform} onChange={e=>up("platform",e.target.value)}><option value="">— None —</option>{["eBay","TCGPlayer","Mercari","Facebook Marketplace","Local Sale","Other"].map(p=><option key={p}>{p}</option>)}</select></Field>
+        <Field label="Linked Order"><select className="input" value={form.linkedOrderId} onChange={e=>up("linkedOrderId",e.target.value)}><option value="">— None —</option>{orders.map(o=><option key={o.id} value={o.id}>#{o.orderNumber}</option>)}</select></Field>
+        <div className="full"><Field label="Notes"><textarea rows={2} className="input" value={form.notes} onChange={e=>up("notes",e.target.value)}/></Field></div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        {editId?<button className="btn-danger" onClick={()=>{setModal(false);setDel(editId)}}>Delete</button>:<div/>}
+        <div style={{display:"flex",gap:10}}><button className="btn btn-secondary" onClick={()=>setModal(false)}>Cancel</button><button className="btn btn-primary" onClick={handleSave}>Save Item</button></div>
+      </div>
+    </Modal>
+    <Confirm open={!!del} onClose={()=>setDel(null)} onConfirm={handleDel} message="Delete this item?"/>
+  </div>);
+}
+
+// ─── Profits ───
+function ProfitsTab({orders}){
+  const sold=orders.filter(o=>o.soldPrice&&parseFloat(o.soldPrice)>0);
+  const rev=sold.reduce((s,o)=>s+(parseFloat(o.soldPrice)||0),0);
+  const cogs=sold.reduce((s,o)=>s+(parseFloat(o.totalCost)||0),0);
+  const profit=rev-cogs;
+  const margin=rev>0?((profit/rev)*100).toFixed(1):"0.0";
+  const totalInv=orders.reduce((s,o)=>s+(parseFloat(o.totalCost)||0),0);
+  const roi=totalInv>0?((profit/totalInv)*100).toFixed(1):"0.0";
+  const unsoldCost=orders.filter(o=>!o.soldPrice||parseFloat(o.soldPrice)===0).reduce((s,o)=>s+(parseFloat(o.totalCost)||0),0);
+
+  const byPlat={};sold.forEach(o=>{const p=o.soldPlatform||"Unknown";if(!byPlat[p])byPlat[p]={rev:0,profit:0,count:0};byPlat[p].rev+=parseFloat(o.soldPrice)||0;byPlat[p].profit+=(parseFloat(o.soldPrice)||0)-(parseFloat(o.totalCost)||0);byPlat[p].count+=1});
+  const bySrc={};sold.forEach(o=>{const s=o.source||"Unknown";if(!bySrc[s])bySrc[s]={rev:0,profit:0,count:0};bySrc[s].rev+=parseFloat(o.soldPrice)||0;bySrc[s].profit+=(parseFloat(o.soldPrice)||0)-(parseFloat(o.totalCost)||0);bySrc[s].count+=1});
+
+  return(<div>
+    <div className="stats">
+      <StatCard label="TOTAL REVENUE" value={fmt$(rev)} icon="💵" color="#34D399"/>
+      <StatCard label="TOTAL COGS" value={fmt$(cogs)} icon="💳" color="#F472B6"/>
+      <StatCard label="NET PROFIT" value={fmt$(profit)} icon="📈" color={profit>=0?"#34D399":"#EF4444"}/>
+      <StatCard label="MARGIN" value={margin+"%"} icon="📊" color="#818CF8"/>
+    </div>
+    <div className="stats">
+      <StatCard label="ITEMS SOLD" value={sold.length} icon="✅" color="#FBBF24"/>
+      <StatCard label="UNSOLD COST" value={fmt$(unsoldCost)} icon="🗃️" color="#FB923C"/>
+      <StatCard label="TOTAL INVESTED" value={fmt$(totalInv)} icon="💰" color="#818CF8"/>
+      <StatCard label="ROI" value={roi+"%"} icon="🎯" color={parseFloat(roi)>=0?"#34D399":"#EF4444"}/>
+    </div>
+    {Object.keys(byPlat).length>0&&<div className="section-card"><h3>Profit by Selling Platform</h3>{Object.entries(byPlat).sort((a,b)=>b[1].profit-a[1].profit).map(([p,d])=><div className="section-row" key={p}><div><div style={{color:"#C8C8E8",fontSize:14,fontWeight:500}}>{p}</div><div style={{color:"var(--dim)",fontSize:12}}>{d.count} sales · {fmt$(d.rev)} rev</div></div><div className="mono" style={{color:d.profit>=0?"#34D399":"#EF4444",fontWeight:700,fontSize:15}}>{d.profit>=0?"+":""}{fmt$(d.profit)}</div></div>)}</div>}
+    {Object.keys(bySrc).length>0&&<div className="section-card"><h3>Profit by Source</h3>{Object.entries(bySrc).sort((a,b)=>b[1].profit-a[1].profit).map(([s,d])=><div className="section-row" key={s}><div><div style={{color:"#C8C8E8",fontSize:14,fontWeight:500}}>{s}</div><div style={{color:"var(--dim)",fontSize:12}}>{d.count} sales · {fmt$(d.rev)} rev</div></div><div className="mono" style={{color:d.profit>=0?"#34D399":"#EF4444",fontWeight:700,fontSize:15}}>{d.profit>=0?"+":""}{fmt$(d.profit)}</div></div>)}</div>}
+    {sold.length>0?<div className="section-card"><h3>Sales History</h3>{[...sold].sort((a,b)=>new Date(b.dateSold||b.orderDate)-new Date(a.dateSold||a.orderDate)).map(o=>{const p=(parseFloat(o.soldPrice)||0)-(parseFloat(o.totalCost)||0);return <div className="section-row" key={o.id}><div><div style={{color:"#C8C8E8",fontSize:14,fontWeight:500}}>{o.productName}</div><div style={{color:"var(--dim)",fontSize:12}}>#{o.orderNumber} · {o.soldPlatform||"—"} · Sold {fmtDate(o.dateSold)} · Cost: {fmt$(o.totalCost)}</div></div><div style={{textAlign:"right"}}><div className="mono" style={{color:"#C8C8E8",fontWeight:600,fontSize:14}}>{fmt$(o.soldPrice)}</div><div style={{color:p>=0?"#34D399":"#EF4444",fontSize:12,fontWeight:600}}>{p>=0?"+":""}{fmt$(p)}</div></div></div>})}</div>:<div className="empty"><div className="icon">💰</div><p>No sales yet. Add a "Sold For" price to any order.</p></div>}
+  </div>);
+}
+
+// ─── Main App ───
+function App(){
+  const [tab,setTab]=useState("dashboard");
+  const [orders,setOrders]=useState([]);
+  const [inventory,setInventory]=useState([]);
+  const [loaded,setLoaded]=useState(false);
+  const [msg,setMsg]=useState("");
+
+  useEffect(()=>{
+    const data=loadData();
+    let o=data.orders||[];let inv=data.inventory||[];
+    const existing=new Set(o.map(x=>x.orderNumber));
+    const newO=GMAIL_ORDERS.filter(x=>!existing.has(x.orderNumber));
+    if(newO.length>0){o=[...o,...newO];saveDataLS({orders:o,inventory:inv});}
+    setOrders(o);setInventory(inv);setLoaded(true);
+  },[]);
+
+  const save=useCallback((overrides={})=>{
+    const data={orders:overrides.orders||orders,inventory:overrides.inventory||inventory};
+    saveDataLS(data);
+  },[orders,inventory]);
+
+  const exportData=()=>{const d=JSON.stringify({orders,inventory,exportedAt:new Date().toISOString()},null,2);navigator.clipboard.writeText(d).then(()=>{setMsg("Copied to clipboard!");setTimeout(()=>setMsg(""),3000)}).catch(()=>{const w=window.open();w.document.write("<pre>"+d+"</pre>")})};
+
+const resetAll=()=>{if(confirm(“Delete ALL data permanently?”)){setOrders([]);setInventory([]);saveDataLS({orders:[],inventory:[]});setMsg(“Cleared.”);setTimeout(()=>setMsg(””),3000)}};
+
+if(!loaded)return <div style={{minHeight:“100vh”,display:“flex”,alignItems:“center”,justifyContent:“center”,background:“var(–bg)”}}><div style={{color:“var(–accent)”,fontSize:18}}>Loading…</div></div>;
+
+return(<div>
+<div className="header"><div className="header-inner"><span style={{fontSize:28}}>⚡</span><div><h1>TCG Tracker</h1><div className="sub">POKEMON RESALE MANAGER</div></div></div></div>
+<div className="tabs"><div className="tabs-inner">{TABS.map(t=><button key={t} className={“tab-btn”+(tab===t?” active”:””)} onClick={()=>setTab(t)}><span className="ico">{TAB_ICONS[t]}</span>{TAB_LABELS[t]}</button>)}</div></div>
+<div className="content">
+{tab===“dashboard”&&<Dashboard orders={orders}/>}
+{tab===“orders”&&<OrdersTab orders={orders} setOrders={setOrders} save={save}/>}
+{tab===“inventory”&&<InventoryTab inventory={inventory} setInventory={setInventory} orders={orders} save={save}/>}
+{tab===“profits”&&<ProfitsTab orders={orders}/>}
+<div className="data-footer">
+<button className=“btn btn-secondary” style={{fontSize:12,padding:“8px 16px”}} onClick={exportData}>Export</button>
+<button className="btn-danger" style={{fontSize:12}} onClick={resetAll}>Reset All</button>
+{msg&&<span style={{color:”#34D399”,fontSize:13,marginLeft:8}}>{msg}</span>}
+</div>
+</div>
+
+  </div>);
+}
+
+ReactDOM.render(<App/>,document.getElementById(“app”));
+</script>
+
+</body>
+</html>
